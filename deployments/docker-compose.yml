@@ -9,7 +9,7 @@ services:
       - rabbit
     environment:
       NODE_PORT: 3000
-      AMQP_CONNECTION_STRING: "amqp://admin:admin@rabbitmq:15672/"
+      AMQP_CONNECTION_STRING: "amqp://admin:admin@rabbitmq:5672/"
       MESSAGE_INTERVAL: 10000
     networks:
       - loadgen
