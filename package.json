@@ -1,0 +1,24 @@
+{
+  "name": "loadgen",
+  "version": "1.0.0",
+  "description": "Loadgenerator which sends messages to a RabbitMQ",
+  "main": "index.js",
+  "keywords": [],
+  "author": "Johannes Schneider",
+  "license": "MIT",
+  "dependencies": {
+    "koa": "^2.11.0",
+    "koa-router": "^8.0.8",
+    "koa-logger": "^3.2.1",
+    "amqp-ts": "^1.8.0"
+  },
+  "devDependencies": {
+    "@types/amqplib": "^0.5.13",
+    "@types/node": "^12.12.6",
+    "@types/koa": "^2.11.3",
+    "@types/koa-router": "^7.4.0",
+    "@types/koa-logger": "^3.1.1",
+    "typescript": "^3.8.3",
+    "tslint": "^6.1.0"
+  }
+}

@@ -1,0 +1,26 @@
+{
+  "compilerOptions": {
+    "module": "commonjs",
+    "esModuleInterop": true,
+    "target": "es6",
+    "noImplicitAny": true,
+    "moduleResolution": "node",
+    "sourceMap": true,
+    "outDir": "out",
+    "baseUrl": ".",
+    "typeRoots": [
+      "node_modules/@types"
+    ]
+  },
+  "filesGlob": [
+    "./**/*.ts",
+    "!./node_modules/**/*.ts",
+    "!./out/node_modules/**/*.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "./out/node_modules",
+    "./public",
+    "out"
+  ]
+}
