@@ -36,7 +36,7 @@ WORKDIR ${workDir}
 
 # Install production modules
 COPY package*.json ${workDir}/
-RUN npm install --production
+RUN npm ci --prod
 
 COPY --from=builder /${workDir}/out ./
 

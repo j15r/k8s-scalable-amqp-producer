@@ -13,14 +13,11 @@
     ]
   },
   "filesGlob": [
-    "./**/*.ts",
-    "!./node_modules/**/*.ts",
-    "!./out/node_modules/**/*.ts"
+    "./**/*.ts"
   ],
   "exclude": [
     "node_modules",
     "./out/node_modules",
-    "./public",
     "out"
   ]
 }
