@@ -16,7 +16,7 @@ WORKDIR ${workDir}
 
 COPY . .
 
-RUN npm install --only=dev
+RUN npm i
 
 # Run tslint
 # RUN ${workDir}/node_modules/.bin/tslint --project ./tsconfig.json
