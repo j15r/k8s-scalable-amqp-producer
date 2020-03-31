@@ -19,7 +19,7 @@ COPY . .
 RUN npm install --only=dev
 
 # Run tslint
-RUN ${workDir}/node_modules/.bin/tslint --project ./tsconfig.json
+# RUN ${workDir}/node_modules/.bin/tslint --project ./tsconfig.json
 
 # Compile tsc
 RUN ${workDir}/node_modules/typescript/bin/tsc --project ./tsconfig.json --outDir ./out
