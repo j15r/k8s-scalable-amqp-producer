@@ -27,13 +27,13 @@ jobs:
         env:
           DIGITALOCEAN_ACCESS_TOKEN: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
         with:
-          args: kubernetes cluster kubeconfig show producer > $GITHUB_WORKSPACE/.kubeconfig
+          args: kubernetes cluster kubeconfig show k8s-tutorial > $GITHUB_WORKSPACE/.kubeconfig
 
       - name: Deploy to DigitalOcean Kubernetes cluster
         run: kubectl --kubeconfig=$GITHUB_WORKSPACE/.kubeconfig apply -f $GITHUB_WORKSPACE/deployment/deployment.yml
 
       - name: Verify deployment
-        run: kubectl --kubeconfig=$GITHUB_WORKSPACE/.kubeconfig rollout status deployment/producer
+        run: kubectl --kubeconfig=$GITHUB_WORKSPACE/.kubeconfig rollout status deployment/producer-deployment
 
         env:
           CI: true
