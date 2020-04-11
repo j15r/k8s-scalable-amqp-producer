@@ -19,7 +19,7 @@ spec:
     spec:
       containers:
         - name: producer-deployment
-          image: docker.pkg.github.com/j15r/k8s-scalable-amqp-producer/producer
+          image: <IMAGE>
           ports:
             - containerPort: 3000
           resources:
