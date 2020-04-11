@@ -15,7 +15,7 @@ jobs:
 
       - name: Build and push image
         run: |
-          docker login docker.pkg.github.com --username ${{ secrets.PRODUCER_GITHUB_USERNAME }} --password ${{ secrets.PRODUCER_GITHUB_TOKEN }}
+          echo ${{ secrets.PRODUCER_GITHUB_TOKEN }} | docker login docker.pkg.github.com --username ${{ secrets.PRODUCER_GITHUB_USERNAME }} --password-stdin
           docker build . --file Dockerfile --tag docker.pkg.github.com/j15r/k8s-scalable-amqp-producer:$(echo $GITHUB_SHA | head -c7)
           docker push docker.pkg.github.com/j15r/k8s-scalable-amqp-producer:$(echo $GITHUB_SHA | head -c7)
 
