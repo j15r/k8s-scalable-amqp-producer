@@ -7,10 +7,6 @@ const port = process.env.NODE_PORT;
 const amqpConnectionString = process.env.AMQP_CONNECTION_STRING;
 const messageInterval = Number(process.env.MESSAGE_INTERVAL);
 
-app.use((ctx: Application.Context) => {
-    ctx.body = 'Hello world';
-});
-
 app.on('error', (err, ctx) => {
     console.error('An error occurred: ', err);
 });
@@ -25,11 +21,11 @@ app.listen(port, async () => {
  * Initialize connection with RabbitMQ and start sending message to exchange
  */
 async function initAmqpConnection() {
-    console.log('Init amqp connection with connection string: ', amqpConnectionString);
+    console.log('Initializing RabbitMQ connection');
     const connection = new Amqp.Connection(amqpConnectionString);
 
     connection.on('error_connection', (err: any) => {
-        console.log('Error while connecting to amqp', err);
+        console.log('Error while connecting to RabbitMQ', err);
         process.exit(0);
     });
 

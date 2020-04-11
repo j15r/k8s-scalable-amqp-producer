@@ -1,0 +1,56 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: producer-deployment
+spec:
+  replicas: 1
+  strategy:
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1
+  minReadySeconds: 5
+  selector:
+    matchLabels:
+      app: producer-deployment
+  template:
+    metadata:
+      labels:
+        app: producer-deployment
+    spec:
+      containers:
+        - name: producer-deployment
+          image: docker.pkg.github.com/j15r/k8s-scalable-amqp-producer/producer
+          ports:
+            - containerPort: 3000
+          resources:
+            requests:
+              cpu: 100m
+            limits:
+              cpu: 100m
+          env:
+            - name: NODE_PORT
+              value: "3000"
+            - name: AMQP_CONNECTION_STRING
+              value: "amqp://admin:admin@rabbitmq:5672/"
+            - name: MESSAGE_INTERVAL
+              value: "60000"
+      imagePullSecrets:
+        - name: regcred
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: producer-deployment-service
+  annotations:
+    external-dns.alpha.kubernetes.io/hostname: "doctl-action.do-api.dev"
+    service.beta.kubernetes.io/do-loadbalancer-certificate-id: "249acd4f-a9a9-45d3-b862-864c5707f79b"
+    service.beta.kubernetes.io/do-loadbalancer-redirect-http-to-https: "true"
+spec:
+  type: LoadBalancer
+  ports:
+    - name: https
+      protocol: TCP
+      port: 443
+      targetPort: 5000
+  selector:
+    app: producer-deployment

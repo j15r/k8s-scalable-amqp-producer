@@ -16,8 +16,24 @@ jobs:
       - name: Build and push image
         run: |
           docker login docker.pkg.github.com --username ${{ secrets.PRODUCER_GITHUB_USERNAME }} --password ${{ secrets.PRODUCER_GITHUB_TOKEN }}
-          docker build . --file Dockerfile --tag docker.pkg.github.com/j15r/k8s-scalable-amqp-producer:latest
-          docker push docker.pkg.github.com/j15r/k8s-scalable-amqp-producer:latest
+          docker build . --file Dockerfile --tag docker.pkg.github.com/j15r/k8s-scalable-amqp-producer:$(echo $GITHUB_SHA | head -c7)
+          docker push docker.pkg.github.com/j15r/k8s-scalable-amqp-producer:$(echo $GITHUB_SHA | head -c7)
+
+      - name: Update deployment file
+        run: TAG=$(echo $GITHUB_SHA | head -c7) && sed -i 's|<IMAGE>|docker.pkg.github.com/j15r/k8s-scalable-amqp-producer:'${TAG}'|' $GITHUB_WORKSPACE/deployments/deployment.yaml
+
+      - name: Save kubeconfig with doctl
+        uses: digitalocean/action-doctl@master
+        env:
+          DIGITALOCEAN_ACCESS_TOKEN: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
+        with:
+          args: kubernetes cluster kubeconfig show producer > $GITHUB_WORKSPACE/.kubeconfig
+
+      - name: Deploy to DigitalOcean Kubernetes cluster
+        run: kubectl --kubeconfig=$GITHUB_WORKSPACE/.kubeconfig apply -f $GITHUB_WORKSPACE/deployment/deployment.yml
+
+      - name: Verify deployment
+        run: kubectl --kubeconfig=$GITHUB_WORKSPACE/.kubeconfig rollout status deployment/producer
 
         env:
           CI: true

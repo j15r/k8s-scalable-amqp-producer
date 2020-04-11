@@ -14,7 +14,7 @@
 image:
   registry: docker.io
   repository: bitnami/rabbitmq
-  tag: 3.8.1-debian-9-r0
+  tag: 3.8.2-debian-10-r30
 
   ## set to true if you would like to see extra information on logs
   ## it turns BASH and NAMI debugging in minideb
@@ -66,12 +66,12 @@ rabbitmq:
   ## RabbitMQ application username
   ## ref: https://github.com/bitnami/bitnami-docker-rabbitmq#environment-variables
   ##
-  username: user
+  username: admin
 
   ## RabbitMQ application password
   ## ref: https://github.com/bitnami/bitnami-docker-rabbitmq#environment-variables
   ##
-  password: password
+  password: admin
   # existingPasswordSecret: name-of-existing-secret
 
   ## Erlang cookie to determine whether different nodes are allowed to communicate with each other
@@ -114,6 +114,9 @@ rabbitmq:
   clustering:
     address_type: hostname
     k8s_domain: cluster.local
+    ## Rebalance master for queues in cluster when new replica is created
+    ## ref: https://www.rabbitmq.com/rabbitmq-queues.8.html#rebalance
+    rebalance: false
 
   loadDefinition:
     enabled: false
@@ -145,6 +148,22 @@ rabbitmq:
 
   ## Configuration file content: advanced configuration
   ## Use this as additional configuraton in classic config format (Erlang term configuration format)
+  ##
+  ## If you set LDAP with TLS/SSL enabled and you are using self-signed certificates, uncomment these lines.
+  ## advancedConfiguration: |-
+  ##   [{
+  ##     rabbitmq_auth_backend_ldap,
+  ##     [{
+  ##         ssl_options,
+  ##         [{
+  ##             verify, verify_none
+  ##         }, {
+  ##             fail_if_no_peer_cert,
+  ##             false
+  ##         }]
+  ##     ]}
+  ##   }].
+  ##
   advancedConfiguration: |-
 
   ## Enable encryption to rabbitmq
@@ -167,11 +186,8 @@ ldap:
   port: "389"
   user_dn_pattern: cn=${username},dc=example,dc=org
   tls:
+    # If you enabled TLS/SSL you can set advaced options using the advancedConfiguration parameter.
     enabled: false
-    caCertificate: |-
-    serverCertificate: |-
-    serverKey: |-
-    # existingSecret: name-of-existing-secret-to-rabbitmq
 
 ## Kubernetes service type
 service:
@@ -180,6 +196,10 @@ service:
   ## ref: https://github.com/bitnami/bitnami-docker-rabbitmq#environment-variables
   ##
   # nodePort: 30672
+
+  ## Set the LoadBalancerIP
+  ##
+  # loadBalancerIP:
 
   ## Node port Tls
   ##
@@ -252,7 +272,7 @@ persistence:
   # existingClaim: ""
 
   # If you change this value, you might have to adjust `rabbitmq.diskFreeLimit` as well.
-  size: 8Gi
+  size: 5Gi
 
   # persistence directory, maps to the rabbitmq data directory
   path: /opt/bitnami/rabbitmq/var/lib/rabbitmq
@@ -260,13 +280,34 @@ persistence:
 ## Configure resource requests and limits
 ## ref: http://kubernetes.io/docs/user-guide/compute-resources/
 ##
-resources:
-  requests:
-    memory: 256Mi
-    cpu: 100m
+resources: {}
 
-## Replica count, set to 3 to provide a default available cluster
-replicas: 3
+networkPolicy:
+  ## Enable creation of NetworkPolicy resources. Only Ingress traffic is filtered for now.
+  ## ref: https://kubernetes.io/docs/concepts/services-networking/network-policies/
+  ##
+  enabled: false
+
+  ## The Policy model to apply. When set to false, only pods with the correct
+  ## client label will have network access to the ports RabbitMQ is listening
+  ## on. When true, RabbitMQ will accept connections from any source
+  ## (with the correct destination port).
+  ##
+  allowExternal: true
+
+  ## Additional NetworkPolicy Ingress "from" rules to set. Note that all rules are OR-ed.
+  ##
+  # additionalRules:
+  #  - matchLabels:
+  #    - role: frontend
+  #  - matchExpressions:
+  #    - key: role
+  #      operator: In
+  #      values:
+  #        - frontend
+
+## Replica count, set to 1 to provide a default available cluster
+replicas: 1
 
 ## Pod priority
 ## https://kubernetes.io/docs/concepts/configuration/pod-priority-preemption/
@@ -280,35 +321,14 @@ updateStrategy:
 ## Node labels and tolerations for pod assignment
 ## ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#nodeselector
 ## ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#taints-and-tolerations-beta-feature
-nodeSelector:
-  beta.kubernetes.io/arch: amd64
+nodeSelector: {}
 tolerations: []
 affinity: {}
-
-## affinity: |
-##   podAntiAffinity:
-##     requiredDuringSchedulingIgnoredDuringExecution:
-##       - labelSelector:
-##           matchLabels:
-##             app: {{ template "rabbitmq.name" . }}
-##             release: {{ .Release.Name | quote }}
-##         topologyKey: kubernetes.io/hostname
-##     preferredDuringSchedulingIgnoredDuringExecution:
-##       - weight: 100
-##         podAffinityTerm:
-##           labelSelector:
-##             matchLabels:
-##               app:  {{ template "rabbitmq.name" . }}
-##               release: {{ .Release.Name | quote }}
-##           topologyKey: failure-domain.beta.kubernetes.io/zone
-
-## annotations for rabbitmq pods
-podAnnotations: {}
-
-## Configure the podDisruptionBudget
 podDisruptionBudget: {}
 # maxUnavailable: 1
 # minAvailable: 1
+## annotations for rabbitmq pods
+podAnnotations: {}
 
 ## Configure the ingress resource that allows you to access the
 ## Wordpress installation. Set up the URL
@@ -325,7 +345,7 @@ ingress:
 
   ## Set this to true in order to enable TLS on the ingress record
   ## A side effect of this will be that the backend wordpress service will be connected at port 443
-  tls: true
+  tls: false
 
   ## If TLS is set to true, you must declare what secret will store the key/certificate for TLS
   tlsSecret: myTlsSecret
@@ -364,7 +384,7 @@ metrics:
   image:
     registry: docker.io
     repository: bitnami/rabbitmq-exporter
-    tag: 0.29.0-debian-9-r82
+    tag: 0.29.0-debian-10-r28
     pullPolicy: IfNotPresent
     ## Optionally specify an array of imagePullSecrets.
     ## Secrets must be manually created in the namespace.
@@ -377,13 +397,17 @@ metrics:
   env: {}
   ## Metrics exporter port
   port: 9419
+  ## RabbitMQ address to connect to (from the same Pod, usually the local loopback address).
+  ## If your Kubernetes cluster does not support IPv6, you can change to `127.0.0.1` in order to force IPv4.
+  ## ref: https://kubernetes.io/docs/concepts/workloads/pods/pod-overview/#networking
+  rabbitmqAddress: localhost
   ## Comma-separated list of extended scraping capabilities supported by the target RabbitMQ server
   ## ref: https://github.com/kbudde/rabbitmq_exporter#extended-rabbitmq-capabilities
   capabilities: "bert,no_sort"
   resources: {}
   annotations:
     prometheus.io/scrape: "true"
-    prometheus.io/port: "9090"
+    prometheus.io/port: "9419"
 
   livenessProbe:
     enabled: true
@@ -417,20 +441,93 @@ metrics:
     # relabellings:
     ## Specify honorLabels parameter to add the scrape endpoint
     honorLabels: false
+    ## Specify the release for ServiceMonitor. Sometimes it should be custom for prometheus operator to work
+    # release: ""
     ## Used to pass Labels that are used by the Prometheus installed in your cluster to select Service Monitors to work with
     ## ref: https://github.com/coreos/prometheus-operator/blob/master/Documentation/api.md#prometheusspec
     additionalLabels: {}
+
+  ## Custom PrometheusRule to be defined
+  ## The value is evaluated as a template, so, for example, the value can depend on .Release or .Chart
+  ## ref: https://github.com/coreos/prometheus-operator#customresourcedefinitions
+  prometheusRule:
+    enabled: false
+    additionalLabels: {}
+    namespace: ""
+    rules: []
+      ## List of reules, used as template by Helm.
+      ## These are just examples rules inspired from https://awesome-prometheus-alerts.grep.to/rules.html
+      ## Please adapt them to your needs.
+      ## Make sure to constraint the rules to the current rabbitmq service.
+      ## Also make sure to escape what looks like helm template.
+      # - alert: RabbitmqDown
+      #   expr: rabbitmq_up{service="{{ template "rabbitmq.fullname" . }}"} == 0
+      #   for: 5m
+      #   labels:
+      #     severity: error
+      #   annotations:
+      #     summary: Rabbitmq down (instance {{ "{{ $labels.instance }}" }})
+      #     description: RabbitMQ node down
+
+      # - alert: ClusterDown
+      #   expr: |
+      #     sum(rabbitmq_running{service="{{ template "rabbitmq.fullname" . }}"})
+      #     < {{ .Values.replicas }}
+      #   for: 5m
+      #   labels:
+      #     severity: error
+      #   annotations:
+      #     summary: Cluster down (instance {{ "{{ $labels.instance }}" }})
+      #     description: |
+      #         Less than {{ .Values.replicas }} nodes running in RabbitMQ cluster
+      #         VALUE = {{ "{{ $value }}" }}
+
+      # - alert: ClusterPartition
+      #   expr: rabbitmq_partitions{service="{{ template "rabbitmq.fullname" . }}"} > 0
+      #   for: 5m
+      #   labels:
+      #     severity: error
+      #   annotations:
+      #     summary: Cluster partition (instance {{ "{{ $labels.instance }}" }})
+      #     description: |
+      #         Cluster partition
+      #         VALUE = {{ "{{ $value }}" }}
+
+      # - alert: OutOfMemory
+      #   expr: |
+      #     rabbitmq_node_mem_used{service="{{ template "rabbitmq.fullname" . }}"}
+      #     / rabbitmq_node_mem_limit{service="{{ template "rabbitmq.fullname" . }}"}
+      #     * 100 > 90
+      #   for: 5m
+      #   labels:
+      #     severity: warning
+      #   annotations:
+      #     summary: Out of memory (instance {{ "{{ $labels.instance }}" }})
+      #     description: |
+      #         Memory available for RabbmitMQ is low (< 10%)\n  VALUE = {{ "{{ $value }}" }}
+      #         LABELS: {{ "{{ $labels }}" }}
+
+      # - alert: TooManyConnections
+      #   expr: rabbitmq_connectionsTotal{service="{{ template "rabbitmq.fullname" . }}"} > 1000
+      #   for: 5m
+      #   labels:
+      #     severity: warning
+      #   annotations:
+      #     summary: Too many connections (instance {{ "{{ $labels.instance }}" }})
+      #     description: |
+    #         RabbitMQ instance has too many connections (> 1000)
+    #         VALUE = {{ "{{ $value }}" }}\n  LABELS: {{ "{{ $labels }}" }}
 
 ##
 ## Init containers parameters:
 ## volumePermissions: Change the owner of the persist volume mountpoint to RunAsUser:fsGroup
 ##
 volumePermissions:
-  enabled: true
+  enabled: false
   image:
     registry: docker.io
     repository: bitnami/minideb
-    tag: stretch
+    tag: buster
     pullPolicy: Always
     ## Optionally specify an array of imagePullSecrets.
     ## Secrets must be manually created in the namespace.
@@ -454,5 +551,5 @@ extraSecrets: {}
   # load-definition:
   #   load_definition.json: |
   #     {
-  #       ...
+#       ...
 #     }
