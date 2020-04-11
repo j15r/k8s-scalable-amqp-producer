@@ -30,7 +30,7 @@ jobs:
           args: kubernetes cluster kubeconfig show k8s-tutorial > $GITHUB_WORKSPACE/.kubeconfig
 
       - name: Deploy to DigitalOcean Kubernetes cluster
-        run: kubectl --kubeconfig=$GITHUB_WORKSPACE/.kubeconfig apply -f $GITHUB_WORKSPACE/deployment/deployment.yaml
+        run: kubectl --kubeconfig=$GITHUB_WORKSPACE/.kubeconfig apply -f $GITHUB_WORKSPACE/deployments/deployment.yaml
 
       - name: Verify deployment
         run: kubectl --kubeconfig=$GITHUB_WORKSPACE/.kubeconfig rollout status deployment/producer-deployment
