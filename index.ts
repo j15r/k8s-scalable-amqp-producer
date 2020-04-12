@@ -48,6 +48,6 @@ async function initAmqpConnection() {
             exchange.send(msg);
         }, messageInterval);
     }).error((err: any) => {
-        console.log('Error while configuring amqp connection ', err);
+        console.log('Error while configuring RabbitMQ connection ', err);
     });
 }

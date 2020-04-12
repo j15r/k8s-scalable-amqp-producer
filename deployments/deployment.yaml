@@ -36,21 +36,3 @@ spec:
               value: "60000"
       imagePullSecrets:
         - name: regcred
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: producer-deployment-service
-  annotations:
-    external-dns.alpha.kubernetes.io/hostname: "doctl-action.do-api.dev"
-    service.beta.kubernetes.io/do-loadbalancer-certificate-id: "249acd4f-a9a9-45d3-b862-864c5707f79b"
-    service.beta.kubernetes.io/do-loadbalancer-redirect-http-to-https: "true"
-spec:
-  type: LoadBalancer
-  ports:
-    - name: https
-      protocol: TCP
-      port: 443
-      targetPort: 5000
-  selector:
-    app: producer-deployment

@@ -1,0 +1,7 @@
+node_modules
+out
+.github
+deployments
+LICENSE
+.gitignore
+README.md

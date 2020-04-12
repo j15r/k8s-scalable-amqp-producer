@@ -2,7 +2,7 @@
 # Global vars
 #############
 
-ARG workDir=/srv/loadgen
+ARG workDir=/srv/producer
 
 ############
 # Build step
@@ -14,9 +14,10 @@ ARG workDir
 ENV workDir=$workDir
 WORKDIR ${workDir}
 
-COPY . .
-
+COPY package*.json ./
 RUN npm i
+
+COPY . .
 
 # Run tslint
 RUN ${workDir}/node_modules/.bin/tslint --project ./tsconfig.json

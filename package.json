@@ -1,7 +1,7 @@
 {
-  "name": "loadgen",
+  "name": "producer",
   "version": "1.0.0",
-  "description": "Loadgenerator which sends messages to a RabbitMQ",
+  "description": "Producer which sends messages to a RabbitMQ",
   "main": "index.js",
   "keywords": [],
   "author": "Johannes Schneider",
